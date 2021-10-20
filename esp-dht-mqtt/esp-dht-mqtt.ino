@@ -1,7 +1,3 @@
-// REQUIRES the following Arduino libraries:
-// - DHT Sensor Library: https://github.com/adafruit/DHT-sensor-library
-// - Adafruit Unified Sensor Lib: https://github.com/adafruit/Adafruit_Sensor
-
 #include "DHT.h"
 #include <Wire.h>
 #include <WiFi.h>
@@ -11,10 +7,10 @@ extern "C" {
 }
 #include <AsyncMqttClient.h>
 
-#define WIFI_SSID "Vodafone-5E4C"
-#define WIFI_PASSWORD "2TGrPgrr3henKzJX"
+#define WIFI_SSID "Meins"
+#define WIFI_PASSWORD "12345678"
 
-#define MQTT_HOST IPAddress(192, 168, 155, 201)
+#define MQTT_HOST IPAddress(192, 168, 45, 201)
 #define MQTT_PORT 1883
 
 #define DHTPIN 4     // Digital pin connected to the DHT sensor
@@ -72,8 +68,6 @@ void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
   }
 }
 
-//------------
-
 void onMqttPublish(uint16_t packetId) {
   Serial.println("Publish acknowledged.");
   Serial.print("  packetId: ");
@@ -97,7 +91,6 @@ void setup() {
   mqttClient.onPublish(onMqttPublish);
   mqttClient.setServer(MQTT_HOST, MQTT_PORT);
   connectToWifi();
-
 }
 
 float temp;
@@ -107,65 +100,21 @@ void loop() {
   unsigned long currentMillis = millis();
   // Every X number of seconds (interval = 10 seconds)
   // it publishes a new MQTT message
+
   if (currentMillis - previousMillis >= interval) {
     // Save the last time a new reading was published
     previousMillis = currentMillis;
-    // New  sensor readings
     temp = dht.readTemperature();
-    //temp = 1.8*bme.readTemperature() + 32;
     hum = dht.readHumidity();
-//    pres = bme.readPressure() / 100.0F;
 
     // Publish an MQTT message on topic esp32/BME2800/temperature
     uint16_t packetIdPub1 = mqttClient.publish(MQTT_PUB_TEMP, 1, true, String(temp).c_str());
     Serial.printf("Publishing on topic %s at QoS 1, packetId: %i", MQTT_PUB_TEMP, packetIdPub1);
-    Serial.printf("Message: %.2f \n", temp);
+    Serial.printf(" Message: %.2f \n", temp);
 
     // Publish an MQTT message on topic esp32/BME2800/humidity
     uint16_t packetIdPub2 = mqttClient.publish(MQTT_PUB_HUM, 1, true, String(hum).c_str());
-    Serial.printf("Publishing on topic %s at QoS 1, packetId %i: ", MQTT_PUB_HUM, packetIdPub2);
-    Serial.printf("Message: ", hum, " Celsius");
-//    Serial.printf("Message: %.2f \n", hum, " Celsius");
-
-
-    // Publish an MQTT message on topic esp32/BME2800/pressure
-//    uint16_t packetIdPub3 = mqttClient.publish(MQTT_PUB_PRES, 1, true, String(pres).c_str());
-//    Serial.printf("Publishing on topic %s at QoS 1, packetId: %i", MQTT_PUB_PRES, packetIdPub3);
-//    Serial.printf("Message: %.3f \n", pres);
+    Serial.printf("Publishing on topic %s at QoS 1, packetId: %i", MQTT_PUB_HUM, packetIdPub2);
+    Serial.printf(" Message: %.2f \n", hum);
   }
-
-
-
-  //  delay(2000);
-  //
-  //  // Reading temperature or humidity takes about 250 milliseconds!
-  //  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
-  //  float h = dht.reTadHumidity();
-  //  // Read temperature as Celsius (the default)
-  //  float t = dht.readTemperature();
-  //  // Read temperature as Fahrenheit (isFahrenheit = true)
-  //  float f = dht.readTemperature(true);
-  //
-  //  // Check if any reads failed and exit early (to try again).
-  //  if (isnan(h) || isnan(t) || isnan(f)) {
-  //    Serial.println(F("Failed to read from DHT sensor!"));
-  //    return;
-  //  }
-  //
-  //  // Compute heat index in Fahrenheit (the default)
-  //  float hif = dht.computeHeatIndex(f, h);
-  //  // Compute heat index in Celsius (isFahreheit = false)
-  //  float hic = dht.computeHeatIndex(t, h, false);
-  //
-  //  Serial.print(F("Humidity: "));
-  //  Serial.print(h);
-  //  Serial.print(F("%  Temperature: "));
-  //  Serial.print(t);
-  //  Serial.println(F("°C "));
-  //  Serial.print(f);
-  //  Serial.print(F("°F  Heat index: "));
-  //  Serial.print(hic);
-  //  Serial.print(F("°C "));
-  //  Serial.print(hif);
-  //  Serial.println(F("°F"));
 }
