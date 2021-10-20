@@ -66,3 +66,8 @@ The Raspberry PI Always changes IP be aware to change that in the ESP 32 IP sett
 
 NodeRed Setup
 
+https://randomnerdtutorials.com/esp32-mqtt-publish-bme280-arduino/
+
+We have to install the Dashboard manually:
+
+https://randomnerdtutorials.com/getting-started-with-node-red-dashboard/
