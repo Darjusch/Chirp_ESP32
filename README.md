@@ -68,6 +68,11 @@ NodeRed Setup
 
 https://randomnerdtutorials.com/esp32-mqtt-publish-bme280-arduino/
 
+IP Changes everytime ( We need a static IP ) so we have to change it in the nodered ui dashboard and in the esp32 code(#define MQTT_HOST IPAddress).
+You can see the ip address with the command: 
+ifconfig
+the ip you need is written under wlan0
 We have to install the Dashboard manually:
 
 https://randomnerdtutorials.com/getting-started-with-node-red-dashboard/
+
