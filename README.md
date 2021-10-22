@@ -1,8 +1,6 @@
-Raspberry PI Mosquitto MQQT Setup + ESP 32 + NodeRed
+## Raspberry PI Mosquitto MQQT Setup + ESP 32 + NodeRed
 
-
-
-Raspberry PI Setup
+### Raspberry PI Setup
 
 
 First connect to wifi:
@@ -56,15 +54,15 @@ you can verify that the image is running
 
 
 
-ESP 32 Setup
+### ESP32 Setup
 
 
 https://randomnerdtutorials.com/esp32-mqtt-publish-bme280-arduino/
 
-The Raspberry PI Always changes IP be aware to change that in the ESP 32 IP setting
+The Raspberry PI Always changes IP be aware to change that in the ESP32 IP setting
 
 
-NodeRed Setup
+### NodeRed Setup
 
 https://randomnerdtutorials.com/esp32-mqtt-publish-bme280-arduino/
 
