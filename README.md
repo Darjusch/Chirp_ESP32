@@ -72,5 +72,9 @@ ifconfig
 the ip you need is written under wlan0
 We have to install the Dashboard manually:
 
+
+If the Port is below 2000 you have to allow the access to it.
+sudo ufw allow 1880
+
 https://randomnerdtutorials.com/getting-started-with-node-red-dashboard/
 
