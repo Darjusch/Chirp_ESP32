@@ -80,6 +80,7 @@ https://randomnerdtutorials.com/getting-started-with-node-red-dashboard/
 
 For some reason the Dashboard is not installed:
 
+cd ~/.node-red
 npm install node-red-dashboard
 
 For changes to take affect you have to reboot:
