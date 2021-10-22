@@ -78,3 +78,10 @@ sudo ufw allow 1880
 
 https://randomnerdtutorials.com/getting-started-with-node-red-dashboard/
 
+For some reason the Dashboard is not installed:
+
+npm install node-red-dashboard
+
+For changes to take affect you have to reboot:
+
+sudo reboot
