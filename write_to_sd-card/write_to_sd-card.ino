@@ -4,11 +4,15 @@
 // CS to 26
 // SCK to 27
 // MOSI to 14
-// MISO to 12
+// MISO to 33
 // VCC to 5V!
 // GND to GND
 
 // SD Card has to be formatted to MS-DOS(FAT)
+// formatting via cli:
+// $diskutil list
+// $diskutil info /dev/disk2s1|grep "Block Size"
+// sudo newfs_msdos -F 32 -c 1 disk2s1 
 
 #include <mySD.h>
 
@@ -20,7 +24,7 @@ void setup()
 
   Serial.print("Initializing SD card...");
   /* initialize SD library with Soft SPI pins, if using Hard SPI replace with this SD.begin()*/
-  if (!SD.begin(26, 14, 12, 27)) {
+  if (!SD.begin(26, 14, 33, 27)) {
     Serial.println("initialization failed!");
     return;
   }
