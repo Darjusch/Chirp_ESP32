@@ -1,8 +1,6 @@
-Raspberry PI Mosquitto MQQT Setup + ESP 32 + NodeRed
+## Raspberry PI Mosquitto MQQT Setup + ESP 32 + NodeRed
 
-
-
-Raspberry PI Setup
+### Raspberry PI Setup
 
 
 First connect to wifi:
@@ -56,15 +54,15 @@ you can verify that the image is running
 
 
 
-ESP 32 Setup
+### ESP32 Setup
 
 
 https://randomnerdtutorials.com/esp32-mqtt-publish-bme280-arduino/
 
-The Raspberry PI Always changes IP be aware to change that in the ESP 32 IP setting
+The Raspberry PI Always changes IP be aware to change that in the ESP32 IP setting
 
 
-NodeRed Setup
+### NodeRed Setup
 
 https://randomnerdtutorials.com/esp32-mqtt-publish-bme280-arduino/
 
@@ -74,5 +72,17 @@ ifconfig
 the ip you need is written under wlan0
 We have to install the Dashboard manually:
 
+
+If the Port is below 2000 you have to allow the access to it.
+sudo ufw allow 1880
+
 https://randomnerdtutorials.com/getting-started-with-node-red-dashboard/
 
+For some reason the Dashboard is not installed:
+
+cd ~/.node-red
+npm install node-red-dashboard
+
+For changes to take affect you have to reboot:
+
+sudo reboot
