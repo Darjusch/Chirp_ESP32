@@ -8,6 +8,8 @@
 // VCC to 5V!
 // GND to GND
 
+// SD Card has to be formatted to MS-DOS(FAT)
+
 #include <mySD.h>
 
 File root;
