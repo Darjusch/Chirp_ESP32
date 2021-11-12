@@ -10,7 +10,7 @@ extern "C" {
 #define WIFI_SSID "Meins"
 #define WIFI_PASSWORD "12345678"
 
-#define MQTT_HOST IPAddress(192, 168, 45, 201)
+#define MQTT_HOST IPAddress(192, 168, 110, 201)
 #define MQTT_PORT 1883
 
 #define DHTPIN 4     // Digital pin connected to the DHT sensor
@@ -26,7 +26,7 @@ TimerHandle_t mqttReconnectTimer;
 TimerHandle_t wifiReconnectTimer;
 
 unsigned long previousMillis = 0;  // Stores last time temperature was published
-const long interval = 10000;       // Interval at which to publish sensor readings
+const long interval = 3000;       // Interval at which to publish sensor readings
 
 void connectToWifi() {
   Serial.println("Connecting to Wi-Fi...");
@@ -98,7 +98,7 @@ float hum;
 
 void loop() {
   unsigned long currentMillis = millis();
-  // Every X number of seconds (interval = 10 seconds)
+  // Every X number of seconds (interval = 3 seconds)
   // it publishes a new MQTT message
 
   if (currentMillis - previousMillis >= interval) {
