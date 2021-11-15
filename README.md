@@ -1,88 +1,27 @@
-## Raspberry PI Mosquitto MQQT Setup + ESP 32 + NodeRed
+## Sound recording to SD card then sendinf the .wav file to the cloud
 
-### Raspberry PI Setup
+### SD Card Module
 
+Connect SD Card Module pins as following:
 
-First connect to wifi:
-```
-sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
-```
-( Doesn't work with Code or Factory wifi ) - Needs 2.4 GHZ
-Mobile hotspot always works 
+- CS to 25
+- SCK to 27
+- MOSI to 14
+- MISO to 33 (12 won't work)
+- VCC to 5V!
+- GND to GND
 
+### INMP441 Microphone sound recording
 
-There you can specify the network:
-```
-network={
-    ssid="" // your network name
-    psk="" // your network password
-}
-```
+connect Mic pins as following:
 
-Then install Docker:
+- VDD to 3V
+- GND to GND
+- L/R to GND (Left channel or right channel)
+- WS to 22 (Left right clock)
+- SD to 21 (Serial data)
+- SCK to 26 (Serial clock)
 
-```
-sudo apt-get update && sudo apt-get upgrade
-```
+### ESP32-DHT22-MQTT (deprecated)
 
-```
-curl -fsSL https://get.docker.com -o get-docker.sh
-```
-
-```
-sudo sh get-docker.sh
-```
-
-Pull the latest MQQT Mosquitto image:
-
-```
-docker pull eclipse-mosquitto
-```
-
-Following this https://github.com/eclipse/mosquitto/issues/2040:
-
-```
-docker run -d -it -p 1883:1883 eclipse-mosquitto mosquitto -c /mosquitto-no-auth.conf
-```
-
-the -d lets it run in the background with 
-
-```
-docker ps -a
-```
-you can verify that the image is running
-
-
-
-### ESP32 Setup
-
-
-https://randomnerdtutorials.com/esp32-mqtt-publish-bme280-arduino/
-
-The Raspberry PI Always changes IP be aware to change that in the ESP32 IP setting
-
-
-### NodeRed Setup
-
-https://randomnerdtutorials.com/esp32-mqtt-publish-bme280-arduino/
-
-IP Changes everytime ( We need a static IP ) so we have to change it in the nodered ui dashboard and in the esp32 code(#define MQTT_HOST IPAddress).
-You can see the ip address with the command: 
-ifconfig
-the ip you need is written under wlan0
-We have to install the Dashboard manually:
-
-
-If the Port is below 2000 you have to allow the access to it.
-sudo ufw allow 1880
-
-https://randomnerdtutorials.com/getting-started-with-node-red-dashboard/
-
-For some reason the Dashboard is not installed:
-
-cd ~/.node-red
-npm install node-red-dashboard
-
-For changes to take affect you have to reboot:
-
-sudo reboot
+see in the folder
