@@ -1,3 +1,4 @@
+
 #include <Arduino.h>
 #include <WiFi.h>
 #include <AsyncTCP.h>
@@ -6,8 +7,7 @@
 #include <FS.h>
 #include <SD.h>
 #include <SPI.h>
-
-
+//#include <mySD.h>
 
 File root;
 // Replace with your network credentials
@@ -18,13 +18,15 @@ const char* password = "12345678";
 AsyncWebServer server(80);
 
 void initSDCard(){
-   Serial.print("Initializing SD card...");
-  /* initialize SD library with Soft SPI pins, if using Hard SPI replace with this SD.begin()*/
-  if(!SD.begin()){
-    Serial.println("Card Mount Failed");
+
+ Serial.print("Initializing SD card...");
+ 
+  if (!SD.begin(26)) {
+    Serial.println("initialization failed!");
     return;
   }
   Serial.println("initialization done.");
+  
   /* Begin at the root "/" */
   root = SD.open("/");
   if (root) {
@@ -38,7 +40,7 @@ void initSDCard(){
     then write string  to it
   */
   if (root) {
-    root.write("<h1>Hello world!</h1>");
+    root.println("<h1>Hello world!</h1>");
     root.flush();
     /* close the file */
     root.close();
@@ -66,6 +68,7 @@ void initWiFi() {
 void setup() {
   Serial.begin(115200);
   initWiFi();
+  SD.begin(26);
   initSDCard();
 
   
@@ -74,11 +77,8 @@ void setup() {
   });
 
   server.serveStatic("/", SD, "/");
-
   server.begin();
 }
-
-
 
 void loop() {
   
