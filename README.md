@@ -1,4 +1,4 @@
-## Sound recording to SD card then sendinf the .wav file to the cloud
+## Sound recording to SD card then sending the .wav file to the cloud
 
 ### SD Card Module
 
@@ -14,6 +14,7 @@ Connect SD Card Module pins as following:
 ### INMP441 Microphone sound recording
 
 connect Mic pins as following:
+[source](https://bestofcpp.com/repo/atomic14-esp32-i2s-mic-test)
 
 - VDD to 3V
 - GND to GND
