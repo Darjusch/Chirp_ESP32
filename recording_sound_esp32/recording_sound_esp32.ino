@@ -1,6 +1,3 @@
-#include <driver/i2s.h>
-#include <mySD.h>
-
 // Connect SD Card Module pins as following:
 // CS to 25
 // SCK to 27
@@ -9,9 +6,17 @@
 // VCC to 5V!
 // GND to GND
 
-#define I2S_WS 22
-#define I2S_SD 21
-#define I2S_SCK 26
+#include <driver/i2s.h>
+#include <mySD.h>
+
+// connect Mic pins as following:
+// VDD to 3V
+// GND to GND
+// L/R to GND // Left channel or right channel
+#define I2S_WS 22 // Left right clock
+#define I2S_SD 21 // Serial data
+#define I2S_SCK 25 // Serial clock
+
 #define I2S_PORT I2S_NUM_0
 #define I2S_SAMPLE_RATE   (16000)
 #define I2S_SAMPLE_BITS   (16)
@@ -23,6 +28,7 @@
 File file;
 File root;
 
+// save recording
 char filename[] = "rec4.wav";
 const int headerSize = 44;
 
@@ -39,7 +45,7 @@ void setup() {
 
   root = SD.open("/");
   if (root) {
-    //    printDirectory(root, 0);
+    printDirectory(root, 0);
     root.close();
   } else {
     Serial.println("error opening root?");
@@ -77,8 +83,8 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-
+  // The ESP32 will be in deep sleep
+  // it never reaches the loop()
 }
 
 void i2sInit() {
@@ -159,6 +165,8 @@ void i2s_adc(void *arg) {
     ets_printf("Never Used Stack Size: %u\n", uxTaskGetStackHighWaterMark(NULL));
   }
   file.close();
+  printDirectory(root, 0);
+
 
   free(i2s_read_buff);
   i2s_read_buff = NULL;

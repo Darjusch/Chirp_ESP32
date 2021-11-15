@@ -36,7 +36,7 @@ void setup()
     printDirectory(root, 0);
     root.close();
   } else {
-    Serial.println("error opening test.txt");
+    Serial.println("error opening test.txt"); 
   }
   /* open "test.txt" for writing */
   root = SD.open("test.txt", FILE_WRITE);
