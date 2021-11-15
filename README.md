@@ -4,7 +4,7 @@
 
 Connect SD Card Module pins as following:
 
-- CS to 25
+- CS to 26
 - SCK to 27
 - MOSI to 14
 - MISO to 33 (12 won't work)
@@ -21,7 +21,7 @@ connect Mic pins as following:
 - L/R to GND (Left channel or right channel)
 - WS to 22 (Left right clock)
 - SD to 21 (Serial data)
-- SCK to 26 (Serial clock)
+- SCK to 25 (Serial clock)
 
 ### ESP32-DHT22-MQTT (deprecated)
 
