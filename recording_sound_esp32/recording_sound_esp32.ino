@@ -35,6 +35,7 @@ void setup() {
     Serial.println("initialization failed!");
     return;
   }
+  Serial.println("initialization done.");
 
   root = SD.open("/");
   if (root) {
