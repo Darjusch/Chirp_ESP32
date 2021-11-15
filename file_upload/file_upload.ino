@@ -1,58 +1,85 @@
-#include "WiFi.h"
-#include "SPIFFS.h"
-#include "ESPAsyncWebServer.h"
- 
-  
+#include <Arduino.h>
+#include <WiFi.h>
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+
+#include <FS.h>
+#include <SD.h>
+#include <SPI.h>
+
+
+
+File root;
+// Replace with your network credentials
 const char* ssid = "Meins";
-const char* password =  "12345678";
-  
+const char* password = "12345678";
+
+// Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
-  
-void setup(){
-  Serial.begin(115200);
-  
-  if(!SPIFFS.begin()){
-        Serial.println("An Error has occurred while mounting SPIFFS");
-        return;
+
+void initSDCard(){
+   Serial.print("Initializing SD card...");
+  /* initialize SD library with Soft SPI pins, if using Hard SPI replace with this SD.begin()*/
+  if(!SD.begin()){
+    Serial.println("Card Mount Failed");
+    return;
   }
-//////////////
-// Write to file
-  File file = SPIFFS.open("/file.html", "w");
-  if (!file) {
-      Serial.println("Error opening file for writing");
-      return;
-  }
-  int bytesWritten = file.print("<h1>YESSSS IT WORKS</h1>");
- 
-  if (bytesWritten > 0) {
-      Serial.println("File was written");
-      Serial.println(bytesWritten);
-   
+  Serial.println("initialization done.");
+  /* Begin at the root "/" */
+  root = SD.open("/");
+  if (root) {
+    root.close();
   } else {
-      Serial.println("File write failed");
+    Serial.println("error opening file"); 
   }
-  file.close();
-//////////////
+  /* open "file" for writing */
+  root = SD.open("index.html", FILE_WRITE);
+  /* if open succesfully -> root != NULL
+    then write string  to it
+  */
+  if (root) {
+    root.write("<h1>Hello world!</h1>");
+    root.flush();
+    /* close the file */
+    root.close();
+  } else {
+    /* if the file open error, print an error */
+    Serial.println("error writing to file");
+  }
+  delay(1000);
+
+  Serial.println("done!");
   
+}
+
+void initWiFi() {
+  WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
-  
+  Serial.print("Connecting to WiFi ..");
   while (WiFi.status() != WL_CONNECTED) {
+    Serial.print('.');
     delay(1000);
-    Serial.println("Connecting to WiFi..");
   }
-  
   Serial.println(WiFi.localIP());
+}
+
+void setup() {
+  Serial.begin(115200);
+  initWiFi();
+  initSDCard();
+
   
   server.on("/download", HTTP_GET, [](AsyncWebServerRequest *request){
-    Serial.println("here");
-    request->send(SPIFFS, "/file.html", "text/html", true);
+    request->send(SD, "/index.html", "text/html");
   });
-   
-  server.on("/interpret", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SPIFFS, "/file.html", "text/html", false);
-  });
-  
+
+  server.serveStatic("/", SD, "/");
+
   server.begin();
 }
+
+
+
+void loop() {
   
-void loop(){}
+}
