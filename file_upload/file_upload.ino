@@ -32,20 +32,16 @@ void initSDCard(){
   } else {
     Serial.println("error opening file"); 
   }
-  /* open "file" for writing */
+  /*
   root = SD.open("index.html", FILE_WRITE);
-  /* if open succesfully -> root != NULL
-    then write string  to it
-  */
   if (root) {
-    root.write("<h1>Hello world!</h1>");
-    root.flush();
-    /* close the file */
+    root.println("Hello world!");
+    //root.flush();
     root.close();
   } else {
-    /* if the file open error, print an error */
     Serial.println("error writing to file");
   }
+  */
   delay(1000);
 
   Serial.println("done!");
@@ -70,7 +66,7 @@ void setup() {
 
   
   server.on("/download", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SD, "/index.html", "text/html");
+    request->send(SD, "/TEST.HTML", "text/html", true);
   });
 
   server.serveStatic("/", SD, "/");
