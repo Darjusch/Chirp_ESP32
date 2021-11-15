@@ -4,10 +4,10 @@
 
 Connect SD Card Module pins as following:
 
-- CS to 26
-- SCK to 27
-- MOSI to 14
-- MISO to 33 (12 won't work)
+- CS to 5
+- SCK to 18
+- MOSI to 23
+- MISO to 19 (12 won't work)
 - VCC to 5V!
 - GND to GND
 
