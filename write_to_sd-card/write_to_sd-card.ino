@@ -13,6 +13,7 @@
 // $diskutil list
 // $diskutil info /dev/disk2s1|grep "Block Size"
 // sudo newfs_msdos -F 32 -c 1 disk2s1 
+// diskutil umount disk2s1
 
 #include <mySD.h>
 
