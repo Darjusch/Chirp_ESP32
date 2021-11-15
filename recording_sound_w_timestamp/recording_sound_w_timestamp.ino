@@ -1,21 +1,24 @@
+
 // Connect SD Card Module pins as following:
-// CS to 5
-// SCK to 18
-// MOSI to 23
-// MISO to 19
+// CS to 25
+// SCK to 27
+// MOSI to 14
+// MISO to 33
 // VCC to 5V!
 // GND to GND
 
 #include <driver/i2s.h>
 #include <mySD.h>
 
+// Libraries to get time from NTP Server
+#include <WiFi.h>
+#include <NTPClient.h>
+#include <WiFiUdp.h>
+
 // connect Mic pins as following:
-// VDD to 3V
-// GND to GND
-// L/R to GND // Left channel or right channel
-#define I2S_WS 22 // Left right clock
-#define I2S_SD 21 // Serial data
-#define I2S_SCK 25 // Serial clock
+#define I2S_WS 22
+#define I2S_SD 21
+#define I2S_SCK 26
 
 #define I2S_PORT I2S_NUM_0
 #define I2S_SAMPLE_RATE   (16000)
@@ -25,32 +28,99 @@
 #define I2S_CHANNEL_NUM   (1)
 #define FLASH_RECORD_SIZE (I2S_CHANNEL_NUM * I2S_SAMPLE_RATE * I2S_SAMPLE_BITS / 8 * RECORD_TIME)
 
+// Define deep sleep options
+uint64_t uS_TO_S_FACTOR = 1000000;  // Conversion factor for micro seconds to seconds
+// Sleep for 10 minutes = 600 seconds
+uint64_t TIME_TO_SLEEP = 600;
+
+// Replace with your network credentials - only 2.4??
+const char* ssid     = "Meins";
+const char* password = "12345678";
+
 File file;
 File root;
 
+// Save reading number on RTC memory
+RTC_DATA_ATTR int readingID = 0;
+
 // save recording
-char filename[] = "new.wav";
+char filename[] = "rec4.wav";
 const int headerSize = 44;
+
+// Define NTP Client to get time
+//WiFiUDP ntpUDP;
+//NTPClient timeClient(ntpUDP);
+//
+//// Variables to save date and time
+//String formattedDate;
+//String dayStamp;
+//String timeStamp;
 
 void setup() {
   Serial.begin(115200);
-  try {
-    sdInit();
+  delay(1000);
+
+//  // Connect to Wi-Fi network with SSID and password
+//  Serial.print("Connecting to ");
+//  Serial.println(ssid);
+//  WiFi.begin(ssid, password);
+//  while (WiFi.status() != WL_CONNECTED) {
+//    delay(500);
+//    Serial.print(".");
+//  }
+//  Serial.println("");
+//  Serial.println("WiFi connected.");
+//
+//  // Initialize a NTPClient to get time
+//  timeClient.begin();
+//  // Set offset time in seconds to adjust for your timezone, for example:
+//  // GMT +1 = 3600
+//  // GMT +8 = 28800
+//  // GMT -1 = -3600
+//  // GMT 0 = 0
+//  timeClient.setTimeOffset(3600);
+
+  Serial.print("Initializing SD card...");
+  /* initialize SD library with Soft SPI pins, if using Hard SPI replace with this SD.begin()*/
+  if (!SD.begin(26, 14, 33, 27)) {
+    Serial.println("initialization failed!");
+    return;
   }
-  catch (...) {
-    Serial.println("SD CARD INIT FAILED");
+  Serial.println("initialization done.");
+
+  root = SD.open("/");
+  if (root) {
+    printDirectory(root, 0);
+    root.close();
+  } else {
+    Serial.println("error opening root?");
   }
+
+  SD.remove(filename);
+  file = SD.open(filename, FILE_WRITE);
+//  delay(2000);
+  if (!file) {
+    Serial.println("File is not available!");
+  }
+
+  // Enable Timer wake_up
+  //  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
+
+//  getTimeStamp();
+
+
+  byte header[headerSize];
+  wavHeader(header, FLASH_RECORD_SIZE);
+
+  file.write(header, headerSize);
+
+
   /*
     Sets i2s config options
     Istalls driver
     Sets pin options
   */
-  try {
-    i2sInit();
-  }
-  catch (...) {
-    Serial.println("Microphone INIT FAILED");
-  }
+  i2sInit();
 
   /*
     xTaskCreate creates a RTOSTask and keeps track of the state of the task
@@ -62,12 +132,11 @@ void setup() {
     Frees the memory
     Displays all files
   */
-  try {
-    xTaskCreate(i2s_adc, "i2s_adc", 1024 * 2, NULL, 1, NULL);
-  }
-  catch (...) {
-    Serial.println("RECORDING FAILED");
-  }
+  xTaskCreate(i2s_adc, "i2s_adc", 1024 * 2, NULL, 1, NULL);
+
+  // Start deep sleep
+  //  Serial.println("DONE! Going to sleep now.");
+  //  esp_deep_sleep_start();
 }
 
 void loop() {
@@ -75,33 +144,26 @@ void loop() {
   // it never reaches the loop()
 }
 
-void sdInit() {
-  Serial.print("Initializing SD card...");
-  /* initialize SD library with Soft SPI pins, if using Hard SPI replace with this SD.begin()*/
-  if (!SD.begin(5, 23, 19, 18)) {
-    Serial.println("initialization failed!");
-    return;
-  }
-  Serial.println("initialization done.");
+// Function to get date and time from NTPClient
+//void getTimeStamp() {
+//  while (!timeClient.update()) {
+//    timeClient.forceUpdate();
+//  }
+//  // The formattedDate comes with the following format:
+//  // 2018-05-28T16:00:13Z
+//  // We need to extract date and time
+//  formattedDate = timeClient.getFormattedDate();
+//  Serial.println(formattedDate);
+//
+//  // Extract date
+//  int splitT = formattedDate.indexOf("T");
+//  dayStamp = formattedDate.substring(0, splitT);
+//  Serial.println(dayStamp);
+//  // Extract time
+//  timeStamp = formattedDate.substring(splitT + 1, formattedDate.length() - 1);
+//  Serial.println(timeStamp);
+//}
 
-  root = SD.open("/");
-  if (root) {
-    root.close();
-  } else {
-    Serial.println("error opening root?");
-  }
-
-  SD.remove(filename);
-  file = SD.open(filename, FILE_WRITE);
-  if (!file) {
-    Serial.println("File is not available!");
-  }
-
-  byte header[headerSize];
-  wavHeader(header, FLASH_RECORD_SIZE);
-
-  file.write(header, headerSize);
-}
 
 void i2sInit() {
   /*
@@ -181,6 +243,8 @@ void i2s_adc(void *arg) {
     ets_printf("Never Used Stack Size: %u\n", uxTaskGetStackHighWaterMark(NULL));
   }
   file.close();
+  printDirectory(root, 0);
+
 
   free(i2s_read_buff);
   i2s_read_buff = NULL;
@@ -248,4 +312,29 @@ void wavHeader(byte* header, int wavSize) {
   header[42] = (byte)((wavSize >> 16) & 0xFF);
   header[43] = (byte)((wavSize >> 24) & 0xFF);
 
+}
+
+void printDirectory(File dir, int numTabs) {
+
+  while (true) {
+    File entry =  dir.openNextFile();
+    if (! entry) {
+      break;
+    }
+    for (uint8_t i = 0; i < numTabs; i++) {
+      Serial.print('\t');   // we'll have a nice indentation
+    }
+    // Print the name
+    Serial.print(entry.name());
+    /* Recurse for directories, otherwise print the file size */
+    if (entry.isDirectory()) {
+      Serial.println("/");
+      printDirectory(entry, numTabs + 1);
+    } else {
+      /* files have sizes, directories do not */
+      Serial.print("\t\t");
+      Serial.println(entry.size());
+    }
+    entry.close();
+  }
 }
