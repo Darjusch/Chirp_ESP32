@@ -1,5 +1,5 @@
 // Connect SD Card Module pins as following:
-// CS to 25
+// CS to 26
 // SCK to 27
 // MOSI to 14
 // MISO to 33
@@ -29,12 +29,53 @@ File file;
 File root;
 
 // save recording
-char filename[] = "rec4.wav";
+char filename[] = "plswork.wav";
 const int headerSize = 44;
 
 void setup() {
   Serial.begin(115200);
+  try {
+      sdInit();
+    }
+  catch(...){
+    Serial.println("SD CARD INIT FAILED");
+    }
+  /*
+    Sets i2s config options
+    Istalls driver
+    Sets pin options
+  */
+  try {
+      i2sInit();
+    }
+    catch(...){
+      Serial.println("Microphone INIT FAILED");
+      }
 
+  /*
+    xTaskCreate creates a RTOSTask and keeps track of the state of the task
+    I2S (Inter-IC Sound) is a serial, synchronous communication protocol that is usually used for transmitting audio data between two digital audio devices.
+    Assigns the size I2S_READ_LEN takes in space in memory once for read and once for write
+    Then reads two times -> Metadata or some protocol ?
+    Then reads until the defined limit is reached
+    After each read it is also writing the read values to the file
+    Frees the memory
+    Displays all files
+  */
+  try{
+    xTaskCreate(i2s_adc, "i2s_adc", 1024 * 2, NULL, 1, NULL);
+  }
+  catch(...) {
+    Serial.println("RECORDING FAILED");
+    }
+}
+
+void loop() {
+  // The ESP32 will be in deep sleep
+  // it never reaches the loop()
+}
+
+void sdInit() {
   Serial.print("Initializing SD card...");
   /* initialize SD library with Soft SPI pins, if using Hard SPI replace with this SD.begin()*/
   if (!SD.begin(26, 14, 33, 27)) {
@@ -45,7 +86,6 @@ void setup() {
 
   root = SD.open("/");
   if (root) {
-    printDirectory(root, 0);
     root.close();
   } else {
     Serial.println("error opening root?");
@@ -61,31 +101,7 @@ void setup() {
   wavHeader(header, FLASH_RECORD_SIZE);
 
   file.write(header, headerSize);
-
-  /*
-    Sets i2s config options
-    Istalls driver
-    Sets pin options
-  */
-  i2sInit();
-
-  /*
-    xTaskCreate creates a RTOSTask and keeps track of the state of the task
-    I2S (Inter-IC Sound) is a serial, synchronous communication protocol that is usually used for transmitting audio data between two digital audio devices.
-    Assigns the size I2S_READ_LEN takes in space in memory once for read and once for write
-    Then reads two times -> Metadata or some protocol ?
-    Then reads until the defined limit is reached
-    After each read it is also writing the read values to the file
-    Frees the memory
-    Displays all files
-  */
-  xTaskCreate(i2s_adc, "i2s_adc", 1024 * 2, NULL, 1, NULL);
-}
-
-void loop() {
-  // The ESP32 will be in deep sleep
-  // it never reaches the loop()
-}
+  }
 
 void i2sInit() {
   /*
@@ -165,8 +181,6 @@ void i2s_adc(void *arg) {
     ets_printf("Never Used Stack Size: %u\n", uxTaskGetStackHighWaterMark(NULL));
   }
   file.close();
-  printDirectory(root, 0);
-
 
   free(i2s_read_buff);
   i2s_read_buff = NULL;
@@ -234,29 +248,4 @@ void wavHeader(byte* header, int wavSize) {
   header[42] = (byte)((wavSize >> 16) & 0xFF);
   header[43] = (byte)((wavSize >> 24) & 0xFF);
 
-}
-
-void printDirectory(File dir, int numTabs) {
-
-  while (true) {
-    File entry =  dir.openNextFile();
-    if (! entry) {
-      break;
-    }
-    for (uint8_t i = 0; i < numTabs; i++) {
-      Serial.print('\t');   // we'll have a nice indentation
-    }
-    // Print the name
-    Serial.print(entry.name());
-    /* Recurse for directories, otherwise print the file size */
-    if (entry.isDirectory()) {
-      Serial.println("/");
-      printDirectory(entry, numTabs + 1);
-    } else {
-      /* files have sizes, directories do not */
-      Serial.print("\t\t");
-      Serial.println(entry.size());
-    }
-    entry.close();
-  }
 }
