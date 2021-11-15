@@ -25,6 +25,7 @@ connect Mic pins as following:
 
 ### Reading files from the SD Card
 [via](http://www.iotsharing.com/2019/07/how-to-turn-esp-with-sdcard-or-spiffs-a-web-file-server.html)
+[(could be insteresting too)](https://www.iotsharing.com/2018/01/esp32-multipart-upload-file-and-download-via-http.html)
 
 ### ESP32-DHT22-MQTT (deprecated)
 
