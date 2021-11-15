@@ -23,6 +23,9 @@ connect Mic pins as following:
 - SD to 21 (Serial data)
 - SCK to 25 (Serial clock)
 
+### Reading files from the SD Card
+[via](http://www.iotsharing.com/2019/07/how-to-turn-esp-with-sdcard-or-spiffs-a-web-file-server.html)
+
 ### ESP32-DHT22-MQTT (deprecated)
 
 see in the folder
