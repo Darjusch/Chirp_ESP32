@@ -10,14 +10,18 @@ extern "C" {
 #define WIFI_SSID "Meins"
 #define WIFI_PASSWORD "12345678"
 
-#define MQTT_HOST IPAddress(192, 168, 45, 201)
+#define MQTT_HOST IPAddress(164, 90, 167, 145)
 #define MQTT_PORT 1883
 
 #define DHTPIN 4     // Digital pin connected to the DHT sensor
 #define DHTTYPE DHT22
 
+#define RAIN_PIN 32 // Digital pin connected to Rain sensor
+
 #define MQTT_PUB_TEMP "esp32/dht22/temperature"
 #define MQTT_PUB_HUM  "esp32/dht22/humidity"
+#define MQTT_PUB_RAIN "esp32/rain/rain"
+
 
 DHT dht(DHTPIN, DHTTYPE);
 AsyncMqttClient mqttClient;
@@ -95,6 +99,7 @@ void setup() {
 
 float temp;
 float hum;
+float rain;
 
 void loop() {
   unsigned long currentMillis = millis();
@@ -106,15 +111,21 @@ void loop() {
     previousMillis = currentMillis;
     temp = dht.readTemperature();
     hum = dht.readHumidity();
+    rain = analogRead(RAIN_PIN);
 
-    // Publish an MQTT message on topic esp32/BME2800/temperature
+    // Publish an MQTT message on topic esp32/dht22/temperature
     uint16_t packetIdPub1 = mqttClient.publish(MQTT_PUB_TEMP, 1, true, String(temp).c_str());
     Serial.printf("Publishing on topic %s at QoS 1, packetId: %i", MQTT_PUB_TEMP, packetIdPub1);
     Serial.printf(" Message: %.2f \n", temp);
 
-    // Publish an MQTT message on topic esp32/BME2800/humidity
+    // Publish an MQTT message on topic esp32/dht22/humidity
     uint16_t packetIdPub2 = mqttClient.publish(MQTT_PUB_HUM, 1, true, String(hum).c_str());
     Serial.printf("Publishing on topic %s at QoS 1, packetId: %i", MQTT_PUB_HUM, packetIdPub2);
     Serial.printf(" Message: %.2f \n", hum);
+
+    // Publish an MQTT message on topic esp32/rain/rain
+    uint16_t packetIdPub3 = mqttClient.publish(MQTT_PUB_RAIN, 1, true, String(rain).c_str());
+    Serial.printf("Publishing on topic %s at QoS 1, packetId: %i", MQTT_PUB_RAIN, packetIdPub3);
+    Serial.printf(" Message: %.2f \n", rain);
   }
 }
