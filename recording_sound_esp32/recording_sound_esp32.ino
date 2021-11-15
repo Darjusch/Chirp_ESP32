@@ -1,4 +1,13 @@
 #include <driver/i2s.h>
+#include <mySD.h>
+
+// Connect SD Card Module pins as following:
+// CS to 25
+// SCK to 27
+// MOSI to 14
+// MISO to 33
+// VCC to 5V!
+// GND to GND
 
 #define I2S_WS 22
 #define I2S_SD 21
@@ -7,133 +16,69 @@
 #define I2S_SAMPLE_RATE   (16000)
 #define I2S_SAMPLE_BITS   (16)
 #define I2S_READ_LEN      (16 * 1024)
-#define RECORD_TIME       (4) //Seconds
+#define RECORD_TIME       (3) //Seconds
 #define I2S_CHANNEL_NUM   (1)
 #define FLASH_RECORD_SIZE (I2S_CHANNEL_NUM * I2S_SAMPLE_RATE * I2S_SAMPLE_BITS / 8 * RECORD_TIME)
 
-
-////// SD CARD
-#include <mySD.h>
-
+File file;
 File root;
 
-// Connect pins as following:
-
-// CS to 25
-// SCK to 27
-// MOSI to 14
-// MISO to 33
-// VCC to 5V!
-// GND to GND
-
-
-////// SD CARD END
-
+char filename[] = "rec4.wav";
 const int headerSize = 44;
 
 void setup() {
-  // put your setup code here, to run once:
   Serial.begin(115200);
-  /*
-    SPIFFS is the interal file system of the ESP
-    Creates wav header
-    Deletes old file
-    Creates new file with write access
-    Writes wav header to file
-    Displays all files and their size
-  */
-  SDInit();
+
+  Serial.print("Initializing SD card...");
+  /* initialize SD library with Soft SPI pins, if using Hard SPI replace with this SD.begin()*/
+  if (!SD.begin(26, 14, 33, 27)) {
+    Serial.println("initialization failed!");
+    return;
+  }
+
+  root = SD.open("/");
+  if (root) {
+    //    printDirectory(root, 0);
+    root.close();
+  } else {
+    Serial.println("error opening root?");
+  }
+
+  SD.remove(filename);
+  file = SD.open(filename, FILE_WRITE);
+  if (!file) {
+    Serial.println("File is not available!");
+  }
+
+  byte header[headerSize];
+  wavHeader(header, FLASH_RECORD_SIZE);
+
+  file.write(header, headerSize);
+
   /*
     Sets i2s config options
     Istalls driver
     Sets pin options
   */
   i2sInit();
+
   /*
     xTaskCreate creates a RTOSTask and keeps track of the state of the task
     I2S (Inter-IC Sound) is a serial, synchronous communication protocol that is usually used for transmitting audio data between two digital audio devices.
     Assigns the size I2S_READ_LEN takes in space in memory once for read and once for write
     Then reads two times -> Metadata or some protocol ?
-
     Then reads until the defined limit is reached
     After each read it is also writing the read values to the file
-
     Frees the memory
     Displays all files
   */
   xTaskCreate(i2s_adc, "i2s_adc", 1024 * 2, NULL, 1, NULL);
-
-
-
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
 
 }
-
-void SDInit() {
-  /*
-    SPIFFS is the interal file system of the ESP
-    Creates wav header
-    Deletes old file
-    Creates new file with write access
-    Writes wav header to file
-    Displays all files and their size
-  */
-
-  /* initialize SD library with Soft SPI pins, if using Hard SPI replace with this SD.begin()*/
-  byte header[headerSize];
-  wavHeader(header, FLASH_RECORD_SIZE);
-
-  Serial.print("Initializing SD card...");
-  if (!SD.begin(25, 14, 33, 27)) {
-    Serial.println("initialization failed!");
-    return;
-  }
-  Serial.println("initialization done.");
-  /* Begin at the root "/" */
-
-  root = SD.open("/");
-  if (root) {
-    printDirectory(root, 0);
-    root.close();
-  } else {
-    Serial.println("error opening test.txt");
-  }
-  /* open "test.txt" for writing */
-  root = SD.open("test2.txt", FILE_WRITE);
-  /* if open succesfully -> root != NULL
-    then write string "Hello world!" to it
-  */
-  if (root) {
-    //root.println("HELLO WORLD!!!!");
-    root.write(header, headerSize);
-    root.flush();
-    Serial.println("HEADER WRITTEN");
-    /* close the file */
-    root.close();
-  } else {
-    /* if the file open error, print an error */
-    Serial.println("error opening test.txt");
-  }
-  delay(1000);
-  /* after writing then reopen the file and read it */
-  root = SD.open("test2.txt");
-  if (root) {
-    /* read from the file until there's nothing else in it */
-    while (root.available()) {
-      /* read the file and print to Terminal */
-      Serial.write(root.read());
-    }
-    root.close();
-  } else {
-    Serial.println("error opening test.txt");
-  }
-  printDirectory(root, 0);
-  Serial.println("done!");
-}
-
 
 void i2sInit() {
   /*
@@ -166,11 +111,10 @@ void i2sInit() {
 }
 
 
-void i2s_adc_data_scale(uint8_t * d_buff, uint8_t* s_buff, uint32_t len)
-/*
-  save original data from I2S(ADC) into flash
-*/
-{
+void i2s_adc_data_scale(uint8_t * d_buff, uint8_t* s_buff, uint32_t len) {
+  /*
+    save original data from I2S(ADC) into flash
+  */
   uint32_t j = 0;
   uint32_t dac_value = 0;
   for (int i = 0; i < len; i += 2) {
@@ -180,19 +124,18 @@ void i2s_adc_data_scale(uint8_t * d_buff, uint8_t* s_buff, uint32_t len)
   }
 }
 
-void i2s_adc(void *arg)
-{
+void i2s_adc(void *arg) {
   /*
     I2S (Inter-IC Sound) is a serial, synchronous communication protocol that is usually used for transmitting audio data between two digital audio devices.
     Assigns the size I2S_READ_LEN takes in space in memory once for read and once for write
     Then reads two times -> Metadata or some protocol ?
-
     Then reads until the defined limit is reached
     After each read it is also writing the read values to the file
 
     Frees the memory
     Displays all files
   */
+
   int i2s_read_len = I2S_READ_LEN;
   int flash_wr_size = 0;
   size_t bytes_read;
@@ -200,7 +143,6 @@ void i2s_adc(void *arg)
   char* i2s_read_buff = (char*) calloc(i2s_read_len, sizeof(char));
   uint8_t* flash_write_buff = (uint8_t*) calloc(i2s_read_len, sizeof(char));
 
-  i2s_read(I2S_PORT, (void*) i2s_read_buff, i2s_read_len, &bytes_read, portMAX_DELAY);
   i2s_read(I2S_PORT, (void*) i2s_read_buff, i2s_read_len, &bytes_read, portMAX_DELAY);
 
   Serial.println(" *** Recording Start *** ");
@@ -210,12 +152,12 @@ void i2s_adc(void *arg)
     example_disp_buf((uint8_t*) i2s_read_buff, 64);
     //save original data from I2S(ADC) into flash.
     i2s_adc_data_scale(flash_write_buff, (uint8_t*)i2s_read_buff, i2s_read_len);
-    root.write((const byte*) flash_write_buff, i2s_read_len);
+    file.write((const byte*)flash_write_buff, i2s_read_len);
     flash_wr_size += i2s_read_len;
     ets_printf("Sound recording %u%%\n", flash_wr_size * 100 / FLASH_RECORD_SIZE);
     ets_printf("Never Used Stack Size: %u\n", uxTaskGetStackHighWaterMark(NULL));
   }
-  root.close();
+  file.close();
 
   free(i2s_read_buff);
   i2s_read_buff = NULL;
@@ -226,9 +168,6 @@ void i2s_adc(void *arg)
 
 void example_disp_buf(uint8_t* buf, int length)
 {
-  /*
-    Print the buffer in the correct format
-  */
   printf("======\n");
   for (int i = 0; i < length; i++) {
     printf("%02x ", buf[i]);
@@ -240,9 +179,6 @@ void example_disp_buf(uint8_t* buf, int length)
 }
 
 void wavHeader(byte* header, int wavSize) {
-  /*
-    Creates the wav header
-  */
   header[0] = 'R';
   header[1] = 'I';
   header[2] = 'F';
@@ -288,29 +224,30 @@ void wavHeader(byte* header, int wavSize) {
   header[41] = (byte)((wavSize >> 8) & 0xFF);
   header[42] = (byte)((wavSize >> 16) & 0xFF);
   header[43] = (byte)((wavSize >> 24) & 0xFF);
-}
 
+}
 
 void printDirectory(File dir, int numTabs) {
 
-  File entry =  dir.openNextFile();
-  if (!entry){
-    Serial.println("No file?");
+  while (true) {
+    File entry =  dir.openNextFile();
+    if (! entry) {
+      break;
+    }
+    for (uint8_t i = 0; i < numTabs; i++) {
+      Serial.print('\t');   // we'll have a nice indentation
+    }
+    // Print the name
+    Serial.print(entry.name());
+    /* Recurse for directories, otherwise print the file size */
+    if (entry.isDirectory()) {
+      Serial.println("/");
+      printDirectory(entry, numTabs + 1);
+    } else {
+      /* files have sizes, directories do not */
+      Serial.print("\t\t");
+      Serial.println(entry.size());
+    }
+    entry.close();
   }
-  for (uint8_t i = 0; i < numTabs; i++) {
-    Serial.print('\t');   // we'll have a nice indentation
-  }
-  // Print the name
-  Serial.print(entry.name());
-  /* Recurse for directories, otherwise print the file size */
-  if (entry.isDirectory()) {
-    Serial.println("/");
-    printDirectory(entry, numTabs + 1);
-  } else {
-    /* files have sizes, directories do not */
-    Serial.print("\t\t");
-    Serial.println(entry.size());
-  }
-  entry.close();
-
 }
