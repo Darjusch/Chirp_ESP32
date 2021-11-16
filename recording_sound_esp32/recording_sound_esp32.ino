@@ -15,6 +15,26 @@
 #include <SPI.h>
 #include <mySD.h>
 
+#include <NTPClient.h>
+#include <WiFiUdp.h>
+
+// Define deep sleep options
+uint64_t uS_TO_S_FACTOR = 1000000;  // Conversion factor for micro seconds to seconds
+// Sleep for 10 minutes = 600 seconds
+uint64_t TIME_TO_SLEEP = 600;
+
+// Save reading number on RTC memory
+RTC_DATA_ATTR int readingID = 0;
+
+// Define NTP Client to get time
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP);
+
+// Variables to save date and time
+String formattedDate;
+String dayStamp;
+String timeStamp;
+
 // connect Mic pins as following:
 // VDD to 3V
 // GND to GND
@@ -41,7 +61,8 @@ File root;
 bool opened = false;
 
 // save recording
-char filename[] = "new1.wav";
+char filename[] = "newrec.wav";
+
 const int headerSize = 44;
 
 String printDirectory(File dir, int numTabs) {
@@ -138,10 +159,27 @@ void wifiInit() {
   }
 }
 
+//String filename;
+
 void setup() {
   Serial.begin(115200);
 
+//  filename = "A string";
+//  char Buf[50];
+//  filename.toCharArray(Buf, 50);
+
   wifiInit();
+
+  // Initialize a NTPClient to get time
+  timeClient.begin();
+  // Set offset time in seconds to adjust for your timezone, for example:
+  // GMT +1 = 3600
+  // GMT +8 = 28800
+  // GMT -1 = -3600
+  // GMT 0 = 0
+  timeClient.setTimeOffset(3600);
+
+  getTimeStamp();
 
   try {
     sdInit();
@@ -209,6 +247,28 @@ void setup() {
   server.begin();
   Serial.println("HTTP server started");
 }
+
+// Function to get date and time from NTPClient
+void getTimeStamp() {
+  while (!timeClient.update()) {
+    timeClient.forceUpdate();
+  }
+  // The formattedDate comes with the following format:
+  // 2018-05-28T16:00:13Z
+  // We need to extract date and time
+  formattedDate = timeClient.getFormattedDate();
+  Serial.println(formattedDate);
+
+  // Extract date
+  int splitT = formattedDate.indexOf("T");
+  dayStamp = formattedDate.substring(0, splitT);
+  Serial.println(dayStamp);
+  // Extract time
+  timeStamp = formattedDate.substring(splitT + 1, formattedDate.length() - 1);
+  Serial.println(timeStamp);
+  return (void)timeStamp;
+}
+
 
 void loop() {
   server.handleClient();
