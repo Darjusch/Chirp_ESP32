@@ -68,7 +68,9 @@ void i2s_adc_data_scale(uint8_t * d_buff, uint8_t* s_buff, uint32_t len) {
 
 void i2s_adc(void *arg) {
   Serial.println("Boot number: " + String(bootCount));
-
+  
+  // Serving must be disabled for deep sleep to work
+  
   esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
   Serial.println("Setup ESP32 to sleep for every " + String(TIME_TO_SLEEP) + " Seconds");
 
