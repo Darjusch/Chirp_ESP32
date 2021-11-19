@@ -1,6 +1,3 @@
-
-
-
 void wifiInit() {
   WiFi.begin(ssid, password);
   Serial.println("");

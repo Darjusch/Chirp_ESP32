@@ -15,15 +15,18 @@ ESP32WebServer server(80);
 const char* ssid = "Meins";
 const char* password = "12345678";
 
+//const char* ssid = "Vodafone-63B4";
+//const char* password = "qcCh6yRbxxX4rq6N";
+
 void setup() {
   Serial.begin(115200);
 
-  wifiInit();
+//  wifiInit();
 
-  timeClient.begin();
-  timeClient.setTimeOffset(3600);
-
-  getTimeStamp();
+//  timeClient.begin();
+//  timeClient.setTimeOffset(3600);
+//
+//  getTimeStamp();
 
   sdInit();
   /*
@@ -45,7 +48,7 @@ void setup() {
 
   xTaskCreate(i2s_adc, "i2s_adc", 1024 * 2, NULL, 1, NULL);
   createAudioFileWithHeader();
-  startServer();
+//  startServer();
 }
 
 void loop() {

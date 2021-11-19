@@ -10,13 +10,12 @@
 #define I2S_CHANNEL_NUM   (1)
 #define FLASH_RECORD_SIZE (I2S_CHANNEL_NUM * I2S_SAMPLE_RATE * I2S_SAMPLE_BITS / 8 * RECORD_TIME)
 
+#define uS_TO_S_FACTOR 1000000 // Conversion factor for micro seconds to seconds
+#define TIME_TO_SLEEP  5 // Sleep for _ seconds
 
+RTC_DATA_ATTR int bootCount = 0;
 
-int m;
-int d;
-int h;
-int y;
-int sec;
+int y, m, d, h, mi, sec;
 
 char fileName[11];
 const int headerSize = 44;
@@ -68,6 +67,12 @@ void i2s_adc_data_scale(uint8_t * d_buff, uint8_t* s_buff, uint32_t len) {
 }
 
 void i2s_adc(void *arg) {
+  ++bootCount;
+  Serial.println("Boot number: " + String(bootCount));
+
+  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
+  Serial.println("Setup ESP32 to sleep for every " + String(TIME_TO_SLEEP) + " Seconds");
+
   /*
     I2S (Inter-IC Sound) is a serial, synchronous communication protocol that is usually used for transmitting audio data between two digital audio devices.
     Assigns the size I2S_READ_LEN takes in space in memory once for read and once for write
@@ -100,16 +105,22 @@ void i2s_adc(void *arg) {
     ets_printf("Never Used Stack Size: %u\n", uxTaskGetStackHighWaterMark(NULL));
   }
   file.close();
+  Serial.println(" *** Recording Ended *** ");
 
   free(i2s_read_buff);
   i2s_read_buff = NULL;
   free(flash_write_buff);
   flash_write_buff = NULL;
-  vTaskDelete(NULL);
+//  vTaskDelete(NULL);
+
+  Serial.println("DONE! Going to sleep now.");
+  delay(1000);
+  Serial.flush();
+  esp_deep_sleep_start();
 }
 
 void createAudioFileWithHeader() {
-   sprintf(fileName, "%d%02d%02d%02d.wav", y, m, d, h); //eg. 21111808 yearmonthdayhour - max 8 characters! (8.3 format)
+  sprintf(fileName, "%d%02d%02d%02d.wav", d, h, mi, sec); //eg. 21111808 yearmonthdayhour - max 8 characters! (8.3 format)
 
   SD.remove(fileName);
   file = SD.open(fileName, FILE_WRITE);
@@ -124,7 +135,7 @@ void createAudioFileWithHeader() {
   wavHeader(header, FLASH_RECORD_SIZE);
 
   file.write(header, headerSize);
-  }
+}
 
 void getTimeStamp() {
   while (!timeClient.update()) {
@@ -135,6 +146,7 @@ void getTimeStamp() {
   m = timeClient.getMonth();
   d = timeClient.getDate();
   h = timeClient.getHours();
+  mi = timeClient.getMinutes();
   sec = timeClient.getSeconds();
 }
 
