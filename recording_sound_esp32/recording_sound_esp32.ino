@@ -1,12 +1,3 @@
-
-// Connect SD Card Module pins as following:
-// CS to 5
-// SCK to 18
-// MOSI to 23
-// MISO to 19
-// VCC to 5V!
-// GND to GND
-
 #include <driver/i2s.h>
 #include <WiFiClient.h>
 #include <ESP32WebServer.h>
@@ -14,11 +5,9 @@
 #include <ESPmDNS.h>
 #include <SPI.h>
 #include <mySD.h>
+#include <NTPClient.h>
+#include <WiFiUdp.h>
 
-// connect Mic pins as following:
-// VDD to 3V
-// GND to GND
-// L/R to GND // Left channel or right channel
 #define I2S_WS 22 // Left right clock
 #define I2S_SD 21 // Serial data
 #define I2S_SCK 25 // Serial clock
@@ -31,17 +20,36 @@
 #define I2S_CHANNEL_NUM   (1)
 #define FLASH_RECORD_SIZE (I2S_CHANNEL_NUM * I2S_SAMPLE_RATE * I2S_SAMPLE_BITS / 8 * RECORD_TIME)
 
-const char* ssid = "K";
-const char* password = "szilicica";
+#define uS_TO_S_FACTOR 1000000 // Conversion factor for micro seconds to seconds
+#define TIME_TO_SLEEP  5 // Sleep for _ seconds
+
+RTC_DATA_ATTR int bootCount = 0;
+
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP);
+ESP32WebServer server(80);
 
 File file;
-
-ESP32WebServer server(80);
 File root;
+
+//const char* ssid = "Vodafone-63B4";
+//const char* password = "qcCh6yRbxxX4rq6N";
+//
+//const char* ssid = "K";
+//const char* password = "szilicica";
+
+const char* ssid = "Meins";
+const char* password = "12345678";
+
 bool opened = false;
 
-// save recording
-char filename[] = "new1.wav";
+int y;
+int m;
+int d;
+int h;
+int mi;
+int sec;
+
 const int headerSize = 44;
 
 String printDirectory(File dir, int numTabs) {
@@ -121,7 +129,6 @@ void wifiInit() {
   WiFi.begin(ssid, password);
   Serial.println("");
 
-  // Wait for connection
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -143,23 +150,26 @@ void setup() {
 
   wifiInit();
 
-  try {
-    sdInit();
-  }
-  catch (...) {
-    Serial.println("SD CARD INIT FAILED");
-  }
+  timeClient.begin();
+  timeClient.setTimeOffset(3600);
+
+  getTimeStamp();
+
+  sdInit();
+
+  //  ++bootCount;
+  //  Serial.println("Boot number: " + String(bootCount));
+  //
+  //  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
+  //  Serial.println("Setup ESP32 to sleep for every " + String(TIME_TO_SLEEP) + " Seconds");
+
+
   /*
     Sets i2s config options
     Istalls driver
     Sets pin options
   */
-  try {
-    i2sInit();
-  }
-  catch (...) {
-    Serial.println("Microphone INIT FAILED");
-  }
+  i2sInit();
 
   /*
     xTaskCreate creates a RTOSTask and keeps track of the state of the task
@@ -171,12 +181,8 @@ void setup() {
     Frees the memory
     Displays all files
   */
-  try {
-    xTaskCreate(i2s_adc, "i2s_adc", 1024 * 2, NULL, 1, NULL);
-  }
-  catch (...) {
-    Serial.println("RECORDING FAILED");
-  }
+
+  xTaskCreate(i2s_adc, "i2s_adc", 1024 * 2, NULL, 1, NULL);
 
   //handle uri
   server.on("/", handleRoot);
@@ -208,11 +214,30 @@ void setup() {
   });
   server.begin();
   Serial.println("HTTP server started");
+
+  // Start deep sleep
+  //  Serial.println("DONE! Going to sleep now.");
+  //  delay(1000);
+  //  Serial.flush();
+  //  esp_deep_sleep_start();
 }
 
-void loop() {
-  server.handleClient();
+void getTimeStamp() {
+  while (!timeClient.update()) {
+    timeClient.forceUpdate();
+  }
+
+  y = timeClient.getYear();
+  m = timeClient.getMonth();
+  d = timeClient.getDate();
+  h = timeClient.getHours();
+  mi = timeClient.getMinutes();
+  sec = timeClient.getSeconds();
+
 }
+
+char fileName[11];
+//char fileName[] = "test.wav";
 
 void sdInit() {
   Serial.print("Initializing SD card...");
@@ -223,16 +248,26 @@ void sdInit() {
   }
   Serial.println("initialization done.");
 
-  SD.remove(filename);
-  file = SD.open(filename, FILE_WRITE);
+  sprintf(fileName, "%d%02d%02d%02d.wav", d, h, mi, sec); //eg. 21111808 yearmonthdayhour - max 8 characters! (8.3 format)
+
+  SD.remove(fileName);
+  file = SD.open(fileName, FILE_WRITE);
   if (!file) {
     Serial.println("File is not available!");
+  } else {
+    Serial.print("File being written: ");
+    Serial.println(fileName);
   }
 
   byte header[headerSize];
   wavHeader(header, FLASH_RECORD_SIZE);
 
   file.write(header, headerSize);
+}
+
+
+void loop() {
+  server.handleClient();
 }
 
 void i2sInit() {
@@ -304,21 +339,28 @@ void i2s_adc(void *arg) {
   while (flash_wr_size < FLASH_RECORD_SIZE) {
     //read data from I2S bus, in this case, from ADC.
     i2s_read(I2S_PORT, (void*) i2s_read_buff, i2s_read_len, &bytes_read, portMAX_DELAY);
-    example_disp_buf((uint8_t*) i2s_read_buff, 64);
+    //    example_disp_buf((uint8_t*) i2s_read_buff, 64);
     //save original data from I2S(ADC) into flash.
     i2s_adc_data_scale(flash_write_buff, (uint8_t*)i2s_read_buff, i2s_read_len);
     file.write((const byte*)flash_write_buff, i2s_read_len);
     flash_wr_size += i2s_read_len;
     ets_printf("Sound recording %u%%\n", flash_wr_size * 100 / FLASH_RECORD_SIZE);
-    ets_printf("Never Used Stack Size: %u\n", uxTaskGetStackHighWaterMark(NULL));
+    //    ets_printf("Never Used Stack Size: %u\n", uxTaskGetStackHighWaterMark(NULL));
   }
   file.close();
+  Serial.println(" *** Recording Ended *** ");
+
+  //  Serial.println("DONE! Going to sleep now.");
+  //  delay(1000);
+  //  Serial.flush();
+  //  esp_deep_sleep_start();
 
   free(i2s_read_buff);
   i2s_read_buff = NULL;
   free(flash_write_buff);
   flash_write_buff = NULL;
   vTaskDelete(NULL);
+
 }
 
 void example_disp_buf(uint8_t* buf, int length)
