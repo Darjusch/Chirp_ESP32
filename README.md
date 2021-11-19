@@ -1,4 +1,4 @@
-## Sound recording to SD card
+## Sound recording to SD card with an ESP32
 
 ### SD Card Module
 
