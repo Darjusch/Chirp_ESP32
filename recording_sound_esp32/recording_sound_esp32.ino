@@ -20,6 +20,11 @@
 #define I2S_CHANNEL_NUM   (1)
 #define FLASH_RECORD_SIZE (I2S_CHANNEL_NUM * I2S_SAMPLE_RATE * I2S_SAMPLE_BITS / 8 * RECORD_TIME)
 
+#define uS_TO_S_FACTOR 1000000 // Conversion factor for micro seconds to seconds
+#define TIME_TO_SLEEP  5 // Sleep for _ seconds
+
+RTC_DATA_ATTR int bootCount = 0;
+
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP);
 ESP32WebServer server(80);
@@ -33,21 +38,20 @@ File root;
 const char* ssid = "K";
 const char* password = "szilicica";
 
+//const char* ssid = "Meins";
+//const char* password = "12345678";
+
 bool opened = false;
 
+int y;
 int m;
 int d;
 int h;
-int y;
+int mi;
 int sec;
 
-char fileName[11];
+//char fileName[11];
 const int headerSize = 44;
-
-uint64_t uS_TO_S_FACTOR = 1000000; // Define deep sleep options
-uint64_t TIME_TO_SLEEP = 600; // Sleep for 10 minutes = 600 seconds
-
-RTC_DATA_ATTR int readingID = 0; // Save reading number on RTC memo
 
 String printDirectory(File dir, int numTabs) {
   String response = "";
@@ -144,15 +148,23 @@ void wifiInit() {
 
 void setup() {
   Serial.begin(115200);
-
-  wifiInit();
-
-  timeClient.begin();
-  timeClient.setTimeOffset(3600);
-  
-  getTimeStamp();
+  //
+  //  wifiInit();
+  //
+  //  timeClient.begin();
+  //  timeClient.setTimeOffset(3600);
+  //
+  //  getTimeStamp();
 
   sdInit();
+
+  ++bootCount;
+  Serial.println("Boot number: " + String(bootCount));
+
+  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
+  Serial.println("Setup ESP32 to sleep for every " + String(TIME_TO_SLEEP) + " Seconds");
+
+
   /*
     Sets i2s config options
     Istalls driver
@@ -201,22 +213,32 @@ void setup() {
       opened = false;
     }
   });
-  server.begin();
-  Serial.println("HTTP server started");
+//  server.begin();
+//  Serial.println("HTTP server started");
+
+  // Start deep sleep
+  //  Serial.println("DONE! Going to sleep now.");
+  //  delay(1000);
+  //  Serial.flush();
+  //  esp_deep_sleep_start();
 }
 
 void getTimeStamp() {
   while (!timeClient.update()) {
     timeClient.forceUpdate();
   }
-  
+
   y = timeClient.getYear();
   m = timeClient.getMonth();
   d = timeClient.getDate();
   h = timeClient.getHours();
+  mi = timeClient.getMinutes();
   sec = timeClient.getSeconds();
 
 }
+
+//char fileName[11];
+char fileName[] = "test.wav";
 
 void sdInit() {
   Serial.print("Initializing SD card...");
@@ -227,7 +249,7 @@ void sdInit() {
   }
   Serial.println("initialization done.");
 
-  sprintf(fileName, "%d%02d%02d%02d.wav", y, m, d, h); //eg. 21111808 yearmonthdayhour - max 8 characters! (8.3 format)
+  //  sprintf(fileName, "%d%02d%02d%02d.wav", d, h, mi, sec); //eg. 21111808 yearmonthdayhour - max 8 characters! (8.3 format)
 
   SD.remove(fileName);
   file = SD.open(fileName, FILE_WRITE);
@@ -318,21 +340,29 @@ void i2s_adc(void *arg) {
   while (flash_wr_size < FLASH_RECORD_SIZE) {
     //read data from I2S bus, in this case, from ADC.
     i2s_read(I2S_PORT, (void*) i2s_read_buff, i2s_read_len, &bytes_read, portMAX_DELAY);
-//    example_disp_buf((uint8_t*) i2s_read_buff, 64);
+    //    example_disp_buf((uint8_t*) i2s_read_buff, 64);
     //save original data from I2S(ADC) into flash.
     i2s_adc_data_scale(flash_write_buff, (uint8_t*)i2s_read_buff, i2s_read_len);
     file.write((const byte*)flash_write_buff, i2s_read_len);
     flash_wr_size += i2s_read_len;
     ets_printf("Sound recording %u%%\n", flash_wr_size * 100 / FLASH_RECORD_SIZE);
-    ets_printf("Never Used Stack Size: %u\n", uxTaskGetStackHighWaterMark(NULL));
+    //    ets_printf("Never Used Stack Size: %u\n", uxTaskGetStackHighWaterMark(NULL));
   }
   file.close();
+  Serial.println(" *** Recording Ended *** ");
+
+  Serial.println("DONE! Going to sleep now.");
+  delay(1000);
+  Serial.flush();
+  esp_deep_sleep_start();
 
   free(i2s_read_buff);
   i2s_read_buff = NULL;
   free(flash_write_buff);
   flash_write_buff = NULL;
   vTaskDelete(NULL);
+
+
 }
 
 void example_disp_buf(uint8_t* buf, int length)
