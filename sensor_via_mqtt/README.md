@@ -1,4 +1,4 @@
-## Raspberry PI Mosquitto MQQT Setup + ESP 32 + NodeRed
+## Raspberry PI Mosquitto MQTT Setup + ESP 32 + NodeRed
 
 ### Raspberry PI Setup
 
@@ -33,7 +33,7 @@ curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 ```
 
-Pull the latest MQQT Mosquitto image:
+Pull the latest MQTT Mosquitto image:
 
 ```
 docker pull eclipse-mosquitto
