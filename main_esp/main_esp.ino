@@ -21,12 +21,12 @@ const char* password = "12345678";
 void setup() {
   Serial.begin(115200);
 
-  wifiInit();
-
-  timeClient.begin();
-  timeClient.setTimeOffset(3600);
-
-  getTimeStamp();
+//  wifiInit();
+//
+//  timeClient.begin();
+//  timeClient.setTimeOffset(3600);
+//
+//  getTimeStamp();
 
   sdInit();
   /*
@@ -48,7 +48,7 @@ void setup() {
 
   xTaskCreate(i2s_adc, "i2s_adc", 1024 * 2, NULL, 1, NULL);
   createAudioFileWithHeader();
-  startServer();
+//  startServer();
 }
 
 void loop() {

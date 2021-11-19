@@ -67,11 +67,10 @@ void i2s_adc_data_scale(uint8_t * d_buff, uint8_t* s_buff, uint32_t len) {
 }
 
 void i2s_adc(void *arg) {
-//  ++bootCount;
-//  Serial.println("Boot number: " + String(bootCount));
-//
-//  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
-//  Serial.println("Setup ESP32 to sleep for every " + String(TIME_TO_SLEEP) + " Seconds");
+  Serial.println("Boot number: " + String(bootCount));
+
+  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
+  Serial.println("Setup ESP32 to sleep for every " + String(TIME_TO_SLEEP) + " Seconds");
 
   /*
     I2S (Inter-IC Sound) is a serial, synchronous communication protocol that is usually used for transmitting audio data between two digital audio devices.
@@ -102,25 +101,29 @@ void i2s_adc(void *arg) {
     file.write((const byte*)flash_write_buff, i2s_read_len);
     flash_wr_size += i2s_read_len;
     ets_printf("Sound recording %u%%\n", flash_wr_size * 100 / FLASH_RECORD_SIZE);
-    ets_printf("Never Used Stack Size: %u\n", uxTaskGetStackHighWaterMark(NULL));
+    //    ets_printf("Never Used Stack Size: %u\n", uxTaskGetStackHighWaterMark(NULL));
   }
   file.close();
+  delay(1000);
   Serial.println(" *** Recording Ended *** ");
 
   free(i2s_read_buff);
   i2s_read_buff = NULL;
   free(flash_write_buff);
   flash_write_buff = NULL;
-  vTaskDelete(NULL);
-
-//  Serial.println("DONE! Going to sleep now.");
-//  delay(1000);
-//  Serial.flush();
-//  esp_deep_sleep_start();
+  //  vTaskDelete(NULL);
+  
+  delay(1000);
+  Serial.println("DONE! Going to sleep now.");
+  delay(1000);
+  Serial.flush();
+  esp_deep_sleep_start();
 }
 
 void createAudioFileWithHeader() {
-  sprintf(fileName, "%d%02d%02d%02d.wav", d, h, mi, sec); //eg. 21111808 yearmonthdayhour - max 8 characters! (8.3 format)
+  ++bootCount;
+
+  sprintf(fileName, "test_%02d.wav", bootCount); // max 8 characters! (8.3 format)
 
   SD.remove(fileName);
   file = SD.open(fileName, FILE_WRITE);
