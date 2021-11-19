@@ -1,4 +1,4 @@
-## Sound recording to SD card then sending the .wav file to the cloud
+## Sound recording to SD card
 
 ### SD Card Module
 
