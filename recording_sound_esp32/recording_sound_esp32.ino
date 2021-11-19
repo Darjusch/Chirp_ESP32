@@ -34,12 +34,12 @@ File root;
 
 //const char* ssid = "Vodafone-63B4";
 //const char* password = "qcCh6yRbxxX4rq6N";
+//
+//const char* ssid = "K";
+//const char* password = "szilicica";
 
-const char* ssid = "K";
-const char* password = "szilicica";
-
-//const char* ssid = "Meins";
-//const char* password = "12345678";
+const char* ssid = "Meins";
+const char* password = "12345678";
 
 bool opened = false;
 
@@ -50,7 +50,6 @@ int h;
 int mi;
 int sec;
 
-//char fileName[11];
 const int headerSize = 44;
 
 String printDirectory(File dir, int numTabs) {
@@ -148,21 +147,21 @@ void wifiInit() {
 
 void setup() {
   Serial.begin(115200);
-  //
-  //  wifiInit();
-  //
-  //  timeClient.begin();
-  //  timeClient.setTimeOffset(3600);
-  //
-  //  getTimeStamp();
+
+  wifiInit();
+
+  timeClient.begin();
+  timeClient.setTimeOffset(3600);
+
+  getTimeStamp();
 
   sdInit();
 
-  ++bootCount;
-  Serial.println("Boot number: " + String(bootCount));
-
-  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
-  Serial.println("Setup ESP32 to sleep for every " + String(TIME_TO_SLEEP) + " Seconds");
+  //  ++bootCount;
+  //  Serial.println("Boot number: " + String(bootCount));
+  //
+  //  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
+  //  Serial.println("Setup ESP32 to sleep for every " + String(TIME_TO_SLEEP) + " Seconds");
 
 
   /*
@@ -213,8 +212,8 @@ void setup() {
       opened = false;
     }
   });
-//  server.begin();
-//  Serial.println("HTTP server started");
+  server.begin();
+  Serial.println("HTTP server started");
 
   // Start deep sleep
   //  Serial.println("DONE! Going to sleep now.");
@@ -237,8 +236,8 @@ void getTimeStamp() {
 
 }
 
-//char fileName[11];
-char fileName[] = "test.wav";
+char fileName[11];
+//char fileName[] = "test.wav";
 
 void sdInit() {
   Serial.print("Initializing SD card...");
@@ -249,7 +248,7 @@ void sdInit() {
   }
   Serial.println("initialization done.");
 
-  //  sprintf(fileName, "%d%02d%02d%02d.wav", d, h, mi, sec); //eg. 21111808 yearmonthdayhour - max 8 characters! (8.3 format)
+  sprintf(fileName, "%d%02d%02d%02d.wav", d, h, mi, sec); //eg. 21111808 yearmonthdayhour - max 8 characters! (8.3 format)
 
   SD.remove(fileName);
   file = SD.open(fileName, FILE_WRITE);
@@ -351,17 +350,16 @@ void i2s_adc(void *arg) {
   file.close();
   Serial.println(" *** Recording Ended *** ");
 
-  Serial.println("DONE! Going to sleep now.");
-  delay(1000);
-  Serial.flush();
-  esp_deep_sleep_start();
+  //  Serial.println("DONE! Going to sleep now.");
+  //  delay(1000);
+  //  Serial.flush();
+  //  esp_deep_sleep_start();
 
   free(i2s_read_buff);
   i2s_read_buff = NULL;
   free(flash_write_buff);
   flash_write_buff = NULL;
   vTaskDelete(NULL);
-
 
 }
 
