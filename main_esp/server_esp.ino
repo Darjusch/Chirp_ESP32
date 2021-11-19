@@ -1,4 +1,3 @@
-
 File root;
 
 void startServer() {
@@ -28,12 +27,21 @@ void handleNotFound() {
 bool loadFromSDCARD(String path) {
   path.toLowerCase();
   String dataType = "text/plain";
-  if (path.endsWith(".txt")) dataType = "text/plain";
+  if (path.endsWith("/")) path += "index.htm";
+
+  if (path.endsWith(".src")) path = path.substring(0, path.lastIndexOf("."));
+  else if (path.endsWith(".jpg")) dataType = "image/jpeg";
+  else if (path.endsWith(".txt")) dataType = "text/plain";
+  else if (path.endsWith(".zip")) dataType = "application/zip";
   Serial.println(dataType);
   File dataFile = SD.open(path.c_str());
 
   if (!dataFile)
     return false;
+
+  if (server.streamFile(dataFile, dataType) != dataFile.size()) {
+    Serial.println("Sent less data than expected!");
+  }
 
   dataFile.close();
   return true;

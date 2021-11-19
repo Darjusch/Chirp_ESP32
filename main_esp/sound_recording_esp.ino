@@ -102,15 +102,20 @@ void i2s_adc(void *arg) {
     file.write((const byte*)flash_write_buff, i2s_read_len);
     flash_wr_size += i2s_read_len;
     ets_printf("Sound recording %u%%\n", flash_wr_size * 100 / FLASH_RECORD_SIZE);
-    ets_printf("Never Used Stack Size: %u\n", uxTaskGetStackHighWaterMark(NULL));
+//    ets_printf("Never Used Stack Size: %u\n", uxTaskGetStackHighWaterMark(NULL));
   }
   file.close();
+  delay(1000);
   Serial.println(" *** Recording Ended *** ");
-
+  delay(1000);
+  Serial.println("Check address for new recordings: ");
+  Serial.println(WiFi.localIP());
+  
   free(i2s_read_buff);
   i2s_read_buff = NULL;
   free(flash_write_buff);
   flash_write_buff = NULL;
+  
   vTaskDelete(NULL);
 
 //  Serial.println("DONE! Going to sleep now.");
