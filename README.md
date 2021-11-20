@@ -1,8 +1,26 @@
 ## Sound recording to SD card with an ESP32
 
+# Setting up the project
+
+## Software Setup
+
+### Clone the repository
+
+### Instal the Arduino IDE - https://www.arduino.cc/en/software
+
+### Install the following Requirments:
+
+#include <NTPClient.h> - https://github.com/arduino-libraries/NTPClient
+
+#include <mySD.h> - https://github.com/nhatuan84/esp32-micro-sdcard
+
+#include <ESP32WebServer.h> - https://github.com/Pedroalbuquerque/ESP32WebServer
+
+## Hardware Setup
+
 ### SD Card Module
 
-Connect SD Card Module pins as following:
+Connect SD Card Module pins as follows:
 
 - CS to 5
 - SCK to 18
