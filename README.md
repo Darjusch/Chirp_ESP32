@@ -55,6 +55,6 @@ connect Mic pins as following:
 - [(could be insteresting too)](https://www.iotsharing.com/2018/01/esp32-multipart-upload-file-and-download-via-http.html)
 
 ## The audio recording and the collection of sensor data is currently seperated
-## For the setup please read the instructions here:
+## For the setup of MQTT, NodeRED, Sensordata collection please read the instructions here:
 
 https://github.com/Darjusch/Chirp_ESP32/tree/main/sensor_via_mqtt
