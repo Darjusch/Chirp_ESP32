@@ -34,7 +34,9 @@ DHTTYPE DHT22
 
 RAIN_PIN 32 // Digital pin connected to Rain sensor
 
-## On our DigitalOcean instance ( Request Permission if you want to change something / Access it )
+## To modify the DigitalOcean instance which hosts the MQTT broker ( Request Permission if you want to change something / Access it )
+
+## To setup your own instance on an RaspberryPI
 
 First connect to wifi:
 ```
@@ -44,12 +46,11 @@ sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
 Mobile hotspot always works 
 
 There you can specify the network:
-```
+
 network={
     ssid="" // your network name
     psk="" // your network password
 }
-```
 
 Then install Docker:
 
@@ -83,9 +84,6 @@ the -d lets it run in the background with
 docker ps -a
 ```
 you can verify that the image is running
-
-
-
 
 
 ### NodeRed Setup
