@@ -1,7 +1,40 @@
-## Raspberry PI Mosquitto MQTT Setup + ESP 32 + NodeRed
+## ESP32 + Mosquitto MQTT Setup on DigitalOcean + NodeRed
 
-### Raspberry PI Setup
+# Setting up the project
 
+## ESP Software Setup
+
+### Clone the repository
+
+### Instal the Arduino IDE - https://www.arduino.cc/en/software
+
+### Set the Arduino IDE up to be able to work with ESP32 - https://docs.espressif.com/projects/arduino-esp32/en/latest/installing.html
+
+### Install the following Requirments:
+
+DHT Sensor Library - https://www.arduino.cc/reference/en/libraries/dht-sensor-library/
+
+Adafruit Unified Sensor Library - https://www.arduino.cc/reference/en/libraries/adafruit-unified-sensor/
+
+ESP async TCP Library - https://github.com/me-no-dev/ESPAsyncTCP
+
+Async MQTT Client Library - https://github.com/marvinroger/async-mqtt-client
+
+In the sensor_via_mqtt.ino file change the IP ADDRESS to the Server where you host your MQTT Broker if you don't use ours. 
+// MQTT_HOST IPAddress(HOST_IP_ADDRESS)
+
+Change the SSID and Password to the one you are using:
+//WIFI_SSID YOURSSIDNAME
+//WIFI_PASSWORD YOURWIFIPASSWORD
+
+## ESP32 Hardware Setup 
+
+DHTPIN 4     // Digital pin connected to the DHT sensor
+DHTTYPE DHT22
+
+RAIN_PIN 32 // Digital pin connected to Rain sensor
+
+## On our DigitalOcean instance ( Request Permission if you want to change something / Access it )
 
 First connect to wifi:
 ```
@@ -9,7 +42,6 @@ sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
 ```
 ( Doesn't work with Code or Factory wifi ) - Needs 2.4 GHZ
 Mobile hotspot always works 
-
 
 There you can specify the network:
 ```
@@ -54,12 +86,6 @@ you can verify that the image is running
 
 
 
-### ESP32 Setup
-
-
-https://randomnerdtutorials.com/esp32-mqtt-publish-bme280-arduino/
-
-The Raspberry PI Always changes IP be aware to change that in the ESP32 IP setting
 
 
 ### NodeRed Setup
