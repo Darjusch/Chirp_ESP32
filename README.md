@@ -8,6 +8,8 @@
 
 ### Instal the Arduino IDE - https://www.arduino.cc/en/software
 
+### Set the Arduino IDE up to be able to work with ESP32 - https://docs.espressif.com/projects/arduino-esp32/en/latest/installing.html
+
 ### Install the following Requirments:
 
 #include <NTPClient.h> - https://github.com/arduino-libraries/NTPClient
@@ -47,6 +49,7 @@ connect Mic pins as following:
 - [via](http://www.iotsharing.com/2019/07/how-to-turn-esp-with-sdcard-or-spiffs-a-web-file-server.html)
 - [(could be insteresting too)](https://www.iotsharing.com/2018/01/esp32-multipart-upload-file-and-download-via-http.html)
 
-### ESP32-DHT22-MQTT (deprecated)
+## The audio recording and the collection of sensor data is currently seperated
+## For the setup please read the instructions here:
 
-see in the folder
+https://github.com/Darjusch/Chirp_ESP32/tree/main/sensor_via_mqtt
