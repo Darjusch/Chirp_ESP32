@@ -12,15 +12,15 @@
 
 #### Install the following Requirments:
 
-#include <NTPClient.h> - https://github.com/arduino-libraries/NTPClient
+<NTPClient.h> - https://github.com/arduino-libraries/NTPClient
 
-#include <mySD.h> - https://github.com/nhatuan84/esp32-micro-sdcard
+<mySD.h> - https://github.com/nhatuan84/esp32-micro-sdcard
 
-#include <ESP32WebServer.h> - https://github.com/Pedroalbuquerque/ESP32WebServer
+<ESP32WebServer.h> - https://github.com/Pedroalbuquerque/ESP32WebServer
 
 #### Change the SSID and Password to the one you are using:
-//WIFI_SSID YOURSSIDNAME
-//WIFI_PASSWORD YOURWIFIPASSWORD
+##### WIFI_SSID YOURSSIDNAME 
+##### WIFI_PASSWORD YOURWIFIPASSWORD
 
 
 ## Hardware Setup
