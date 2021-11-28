@@ -12,11 +12,11 @@ WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP);
 ESP32WebServer server(80);
 
-const char* ssid = "Meins";
-const char* password = "12345678";
+//const char* ssid = "Meins";
+//const char* password = "12345678";
 
-//const char* ssid = "Vodafone-63B4";
-//const char* password = "qcCh6yRbxxX4rq6N";
+const char* ssid = "Vodafone-63B4";
+const char* password = "qcCh6yRbxxX4rq6N";
 
 void setup() {
   Serial.begin(115200);
